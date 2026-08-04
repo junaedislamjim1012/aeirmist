@@ -1,0 +1,8 @@
+{
+  "appId": "com.aeirmist.social",
+  "appName": "Aeirmist",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

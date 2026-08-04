@@ -1,0 +1,70 @@
+export interface Message {
+  id: string;
+  text?: string;
+  senderId: string;
+  timestamp: string;
+  timestampMs?: number;
+  type: 'text' | 'image' | 'video' | 'voice' | 'media' | 'post';
+  mediaUrl?: string;
+  duration?: number;
+  reactions?: { [emoji: string]: number };
+  userReactions?: { [userId: string]: string };
+  isOptimistic?: boolean;
+  isFailed?: boolean;
+  isHD?: boolean;
+  isSeen?: boolean;
+  isDelivered?: boolean;
+  status?: 'sending' | 'sent' | 'delivered' | 'seen';
+  error?: string;
+  retryCount?: number;
+  mood?: string;
+  metadata?: any;
+  thumbnail?: string;
+  progress?: number;
+  uploadStatus?: string;
+  conversationId?: string;
+}
+
+export interface Chat {
+  id: string;
+  name: string;
+  photo: string;
+  lastMessage: any;
+  time: string;
+  unread: boolean;
+  online: boolean;
+  isPinned?: boolean;
+  isMuted?: boolean;
+  isArchived?: boolean;
+  isVanishMode?: boolean;
+  isVaulted?: { [userId: string]: boolean };
+  theme?: string;
+  themeSettings?: {
+    wallpaperURL?: string;
+    blurLevel?: number;
+    brightness?: number;
+    overlayColor?: string;
+    neonIntensity?: number;
+    bubbleStyle?: string;
+    effectType?: string;
+  };
+  status?: 'active' | 'request' | 'archived';
+  readBy?: string[];
+  participants?: string[];
+  profileIds?: string[];
+  otherParticipantId?: string;
+  otherParticipantUid?: string;
+  isTemporary?: boolean;
+  isGroup?: boolean;
+  currentNote?: string;
+  lastMessageSenderId?: string;
+  lastMessageMood?: string;
+  lastRead?: { [userId: string]: any };
+  lastDelivered?: { [userId: string]: any };
+  typing?: { [userId: string]: any };
+  deletedFor?: { [userId: string]: any };
+  participantDetails?: { [userId: string]: any };
+  unreadCount?: { [userId: string]: number };
+  updatedAt?: any;
+  updatedAtMs?: number;
+}

@@ -1,0 +1,321 @@
+{
+  "entities": {
+    "account": {
+      "title": "Account",
+      "description": "Internal account mapping",
+      "type": "object",
+      "properties": {
+        "ownerUid": { "type": "string" },
+        "activeProfileId": { "type": "string" },
+        "email": { "type": "string" }
+      },
+      "required": ["ownerUid"]
+    },
+    "user": {
+      "title": "User",
+      "description": "Core user authentication/metadata",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "username": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "provider": { "type": "string" },
+        "lastLogin": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "username", "email", "createdAt"]
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "User profile data",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "bannerURL": { "type": "string" },
+        "username": { "type": "string" },
+        "bio": { "type": "string" },
+        "tagline": { "type": "string" },
+        "location": { "type": "string" },
+        "website": { "type": "string" },
+        "pronouns": { "type": "string" },
+        "ownerUid": { "type": "string" },
+        "aeirmistLevel": { "type": "number" },
+        "hasPassword": { "type": "boolean" },
+        "social": { 
+          "type": "object",
+          "properties": {
+            "followers": { "type": "array" },
+            "following": { "type": "array" }
+          }
+        },
+        "followersCount": { "type": "number" },
+        "followingCount": { "type": "number" },
+        "socialLinks": { "type": "object" },
+        "nglSettings": { 
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "audience": { "type": "string" }
+          }
+        },
+        "privacySettings": { "type": "object" },
+        "themeSettings": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["username", "ownerUid", "createdAt"]
+    },
+    "username": {
+      "title": "Username",
+      "description": "Username reservation entity",
+      "type": "object",
+      "properties": {
+        "ownerUid": { "type": "string" },
+        "profileId": { "type": "string" }
+      },
+      "required": ["ownerUid", "profileId"]
+    },
+    "post": {
+      "title": "Post",
+      "description": "User post data",
+      "type": "object",
+      "properties": {
+        "content": { "type": "string" },
+        "mediaUrls": { "type": "array" },
+        "authorId": { "type": "string" },
+        "authorUid": { "type": "string" },
+        "likesCount": { "type": "number" },
+        "viewsCount": { "type": "number" },
+        "likedBy": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["authorId", "createdAt"]
+    },
+    "note": {
+      "title": "Note",
+      "description": "Short social note",
+      "type": "object",
+      "properties": {
+        "authorId": { "type": "string" },
+        "authorUid": { "type": "string" },
+        "content": { "type": "string" },
+        "audience": { "type": "string", "enum": ["public", "followers", "closeFriends"] },
+        "visibleTo": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "expiresAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["authorId", "authorUid", "content", "createdAt"]
+    },
+    "conversation": {
+      "title": "Conversation",
+      "description": "Chat conversation",
+      "type": "object",
+      "properties": {
+        "participants": { "type": "array" },
+        "lastMessage": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "vault_config": {
+      "title": "Vault Configuration",
+      "description": "Secret vault settings for a profile",
+      "type": "object",
+      "properties": {
+        "passcodeHash": { "type": "string" },
+        "questionIds": { "type": "array" },
+        "answersHashes": { "type": "array" },
+        "autoLockDuration": { "type": "string" },
+        "silentNotifications": { "type": "boolean" }
+      }
+    },
+    "message": {
+      "title": "Message",
+      "description": "Chat message",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "notification": {
+      "title": "Notification",
+      "description": "User notification",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "type": { "type": "string" },
+        "data": { "type": "object" },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "call": {
+      "title": "Call",
+      "description": "Active WebRTC call session",
+      "type": "object",
+      "properties": {
+        "initiatorId": { "type": "string" },
+        "targetId": { "type": "string" },
+        "status": { "type": "string" },
+        "offer": { "type": "object" },
+        "answer": { "type": "object" }
+      }
+    },
+    "ngl_message": {
+      "title": "NGL Message",
+      "description": "Anonymous message sent via NGL",
+      "type": "object",
+      "properties": {
+        "recipientProfileId": { "type": "string" },
+        "recipientUid": { "type": "string" },
+        "senderUid": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["unread", "read", "archived", "replied"] },
+        "storyReplyId": { "type": "string" }
+      },
+      "required": ["recipientProfileId", "content", "createdAt", "status"]
+    },
+    "post_insight": {
+      "title": "Post Insight",
+      "description": "Aggregated analytics for a post",
+      "type": "object",
+      "properties": {
+        "postId": { "type": "string" },
+        "totalViews": { "type": "number" },
+        "uniqueViews": { "type": "number" },
+        "reach": { "type": "number" },
+        "profileClicks": { "type": "number" },
+        "avgWatchDuration": { "type": "number" },
+        "completionRate": { "type": "number" },
+        "engagementRate": { "type": "number" },
+        "performanceLabel": { "type": "string" },
+        "viewSources": { "type": "object" },
+        "audience": { "type": "object" },
+        "lastUpdated": { "type": "string", "format": "date-time" }
+      },
+      "required": ["postId"]
+    },
+    "post_view": {
+      "title": "Post View",
+      "description": "Individual view event for analytics",
+      "type": "object",
+      "properties": {
+        "postId": { "type": "string" },
+        "viewerUid": { "type": "string" },
+        "sessionId": { "type": "string" },
+        "source": { "type": "string" },
+        "duration": { "type": "number" },
+        "deviceType": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["postId", "timestamp"]
+    },
+    "chat_nickname": {
+      "title": "Chat Nickname",
+      "description": "Private nickname for a conversation",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "conversationId": { "type": "string" },
+        "nickname": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "conversationId", "nickname", "updatedAt"]
+    },
+    "sound_library": {
+      "title": "Sound Library Track",
+      "description": "Sound library audio track and metadata",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "artist": { "type": "string" },
+        "audioURL": { "type": "string" },
+        "coverArtURL": { "type": "string" },
+        "category": { "type": "string" },
+        "usageCount": { "type": "number" },
+        "uploaderUid": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "artist", "audioURL"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "user",
+      "description": "Core user records"
+    },
+    "/accounts/{uid}": {
+      "schema": "account",
+      "description": "Managed accounts"
+    },
+    "/profiles/{profileId}": {
+      "schema": "profile",
+      "description": "User profiles"
+    },
+    "/profiles/{profileId}/vault/{vaultId}": {
+      "schema": "vault_config",
+      "description": "Secure settings for user Vault"
+    },
+    "/usernames/{username}": {
+      "schema": "username",
+      "description": "Reserved usernames"
+    },
+    "/posts/{postId}": {
+      "schema": "post",
+      "description": "Social feed posts"
+    },
+    "/notes/{noteId}": {
+      "schema": "note",
+      "description": "Ephemeral user notes"
+    },
+    "/stories/{storyId}": {
+      "schema": "post",
+      "description": "Ephemeral stories"
+    },
+    "/videos/{videoId}": {
+      "schema": "post",
+      "description": "Full-feed video content"
+    },
+    "/conversations/{conversationId}": {
+      "schema": "conversation",
+      "description": "Direct message threads"
+    },
+    "/conversations/{conversationId}/messages/{messageId}": {
+      "schema": "message",
+      "description": "Chat messages"
+    },
+    "/notifications/{notifId}": {
+      "schema": "notification",
+      "description": "User alerts"
+    },
+    "/calls/{callId}": {
+      "schema": "call",
+      "description": "WebRTC signaling"
+    },
+    "/ngl_messages/{msgId}": {
+      "schema": "ngl_message",
+      "description": "Anonymous NGL messages"
+    },
+    "/post_insights/{postId}": {
+      "schema": "post_insight",
+      "description": "Aggregated analytics for posts"
+    },
+    "/post_views/{viewId}": {
+      "schema": "post_view",
+      "description": "Granular view events"
+    },
+    "/chat_settings/{docId}": {
+      "schema": "chat_nickname",
+      "description": "Private nicknames for chats"
+    },
+    "/sound_library/{trackId}": {
+      "schema": "sound_library",
+      "description": "Available sound library tracks"
+    }
+  }
+}

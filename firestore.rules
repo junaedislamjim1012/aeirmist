@@ -1,0 +1,362 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. GLOBAL SAFETY NET
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // -- PRIMITIVES --
+    function isSignedIn() { return request.auth != null; }
+    function isAdmin() { 
+      return isSignedIn();
+    }
+    function isOwner(userId) { return request.auth != null && request.auth.uid == userId; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    
+    // -- RELATIONAL HELPERS --
+    function isProfileOwnerRead(profileId) {
+      return isSignedIn() && (
+        profileId == 'profile_' + request.auth.uid ||
+        profileId.startsWith('profile_' + request.auth.uid) ||
+        (exists(/databases/$(database)/documents/profiles/$(profileId)) && 
+         (get(/databases/$(database)/documents/profiles/$(profileId)).data.ownerUid == request.auth.uid ||
+          get(/databases/$(database)/documents/profiles/$(profileId)).data.uid == request.auth.uid))
+      );
+    }
+
+    function isProfileOwnerWrite(profileId) {
+      return isSignedIn() && (
+        profileId == 'profile_' + request.auth.uid ||
+        profileId.startsWith('profile_' + request.auth.uid) ||
+        (exists(/databases/$(database)/documents/profiles/$(profileId)) && 
+         (get(/databases/$(database)/documents/profiles/$(profileId)).data.ownerUid == request.auth.uid ||
+          get(/databases/$(database)/documents/profiles/$(profileId)).data.uid == request.auth.uid)) ||
+        (existsAfter(/databases/$(database)/documents/profiles/$(profileId)) && 
+         (getAfter(/databases/$(database)/documents/profiles/$(profileId)).data.ownerUid == request.auth.uid ||
+          getAfter(/databases/$(database)/documents/profiles/$(profileId)).data.uid == request.auth.uid))
+      );
+    }
+
+    function isFollowInteractionWrite(profileId) {
+      return isSignedIn() && 
+             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['social', 'followersCount']) &&
+             (resource.data.social == null || request.resource.data.social.diff(resource.data.social).affectedKeys().hasOnly(['followers']));
+    }
+
+    // -- COLLECTION RULES --
+    
+    // 1. USERS
+    match /users/{userId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // 2. PROFILES
+    match /profiles/{profileId} {
+      allow read: if isSignedIn();
+      allow write: if isProfileOwnerWrite(profileId) || isAdmin() || isFollowInteractionWrite(profileId);
+      
+      match /vault/{vaultDoc} {
+        allow read, write: if isProfileOwnerWrite(profileId) || isAdmin();
+      }
+
+      match /settings/{settingsDoc} {
+        allow read, write: if isProfileOwnerWrite(profileId) || isAdmin();
+      }
+    }
+
+    // 2. ADMINS
+    match /admins/{uid} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /audit_logs/{logId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /role_policies/{policyId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 3. USERNAME LOCKS
+    match /usernames/{username} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // 4. POSTS
+    match /posts/{postId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+
+      match /comments/{commentId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+
+    // 15. POST INSIGHTS & ANALYTICS
+    match /post_insights/{postId} {
+      // Allow public read so view counts can be displayed
+      allow read: if true;
+      // Allow public tracking of views and clicks
+      allow create, update: if isSignedIn(); 
+    }
+
+    match /post_views/{viewId} {
+      allow create: if true;
+      allow read: if isSignedIn() && (
+        resource == null || 
+        get(/databases/$(database)/documents/posts/$(resource.data.postId)).data.authorUid == request.auth.uid
+      );
+    }
+
+    // 13. FOLLOW REQUESTS
+    match /follow_requests/{requestId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 5. CONVERSATIONS
+    match /conversations/{conversationId} {
+      allow read, write: if isSignedIn();
+
+      match /messages/{messageId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+
+    // 16. CHAT SETTINGS (Personal)
+    match /chat_settings/{docId} {
+        allow read, write: if isSignedIn();
+    }
+    
+    // 17. SHARED CHAT SETTINGS
+    match /shared_chat_settings/{chatId} {
+        allow read, write: if isSignedIn();
+    }
+
+    // 18. VAULT FOLDERS
+    match /vault_folders/{folderId} {
+        allow read: if isSignedIn() && request.auth.uid == resource.data.userId;
+        allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+        allow update: if isSignedIn() && request.auth.uid == resource.data.userId;
+        allow delete: if isSignedIn() && request.auth.uid == resource.data.userId;
+    }
+
+    // 19. CHAT NICKNAMES
+    match /chat_nickname/{docId} {
+        allow read: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid);
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+        allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // 6. VIDEOS & STORIES
+    match /videos/{videoId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn() && (existing().authorUid == request.auth.uid);
+    }
+    match /stories/{storyId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 7. NOTIFICATIONS
+    match /notifications/{notifId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 8. CALLS
+    match /calls/{callId} {
+      allow list: if isSignedIn() && request.auth.uid in resource.data.participants;
+      allow get: if isSignedIn() && (request.auth.uid == resource.data.initiatorId || request.auth.uid == resource.data.targetId || request.auth.uid in resource.data.participants || request.auth.uid == resource.data.callerUid || request.auth.uid == resource.data.receiverUid);
+      allow write: if isSignedIn();
+
+      match /candidates/{candId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+
+    // 9. CALL HISTORY
+    match /callHistory/{recordId} {
+      allow list: if isSignedIn() && request.auth.uid in resource.data.participants;
+      allow get: if isSignedIn() && request.auth.uid in resource.data.participants;
+      allow create: if isSignedIn();
+      allow delete: if isSignedIn() && request.auth.uid in resource.data.participants;
+    }
+    
+    // 10. ACCOUNTS
+    match /accounts/{uid} {
+      allow read, write: if isOwner(uid);
+    }
+    
+    // 11. NOTES
+    match /notes/{noteId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn(); // Allow updating with music
+      allow delete: if isSignedIn() && (existing().authorUid == request.auth.uid);
+    }
+    
+    // 12. HIGHLIGHTS
+    match /highlights/{highlightId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+    
+    // 13. SONGS
+    match /songs/{songId} {
+      allow read: if isSignedIn();
+    }
+
+    // 14. NGL MESSAGES
+    match /ngl_messages/{msgId} {
+      // Only the recipient can read/list their inbox
+      allow get, list: if isSignedIn() && (resource.data.recipientUid == request.auth.uid || resource.data.recipientProfileId == '');
+      
+      // Anyone signed in can send a message
+      allow create: if isSignedIn() && 
+        incoming().status == 'unread' && 
+        incoming().content.size() <= 300 &&
+        incoming().createdAt == request.time;
+        
+      // Only recipient can mark as read, archived, or delete
+      allow update: if isSignedIn() && (existing().recipientUid == request.auth.uid) &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'storyReplyId', 'repliedAt']);
+      allow delete: if isSignedIn() && (existing().recipientUid == request.auth.uid);
+    }
+
+    // 15. TYPING INDICATORS
+    match /typing_indicators/{indicatorId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 16. MARKETPLACE STORES
+    match /stores/{storeId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 17. MARKETPLACE PRODUCTS
+    match /products/{productId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 18. MARKETPLACE SERVICES
+    match /services/{serviceId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 19. MARKETPLACE STORE POSTS
+    match /store_posts/{postId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 20. MARKETPLACE STORE CHATS
+    match /store_chats/{chatId} {
+      allow read, write: if isSignedIn();
+
+      match /messages/{messageId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+
+    // 21. FEED COMMENTS
+    match /feed_comments/{commentId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 22. MARKETPLACE STORE REVIEWS
+    match /store_reviews/{reviewId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 23. MARKETPLACE SAVED ITEMS
+    match /saved_items/{itemId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 24. BILLING TRANSACTIONS
+    match /transactions/{transactionId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 25. ACTIVITIES
+    match /activities/{activityId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // 26. SOUND LIBRARY
+    match /sound_library/{trackId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (
+        (resource.data.uploaderUid == request.auth.uid) ||
+        (incoming().diff(existing()).affectedKeys().hasOnly(['usageCount']))
+      );
+      allow delete: if isSignedIn() && (resource.data.uploaderUid == request.auth.uid);
+    }
+
+    // 27. MARKETPLACE ORDERS
+    match /orders/{orderId} {
+      allow read: if isSignedIn() && (resource.data.buyerId == request.auth.uid || request.auth.uid in resource.data.sellerUids);
+      allow create: if isSignedIn() && request.resource.data.buyerId == request.auth.uid;
+      allow update: if isSignedIn() && (
+        (resource.data.buyerId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['refundStatus', 'refundReason'])) ||
+        (request.auth.uid in resource.data.sellerUids && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['currentStatus', 'trackingTimeline', 'refundStatus']))
+      );
+    }
+
+    // 28. LOGIN SESSIONS
+    match /login_sessions/{sessionId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 29. CONTENT REPORTS (user-submitted moderation reports)
+    match /reports/{reportId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.reporterId == request.auth.uid
+        && request.resource.data.status == 'pending';
+      allow update, delete: if isAdmin();
+    }
+
+    // 30. SYSTEM CONFIGURATION
+    match /system_config/{configId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 31. GROUPS & PAGES
+    match /groups/{groupId} {
+      allow read, write: if isSignedIn();
+    }
+    match /pages/{pageId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 32. APPEALS & MODERATION
+    match /appeals/{appealId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 33. MARKETPLACE ITEMS
+    match /marketplace_items/{itemId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 34. LOGS & EVENTS
+    match /login_history/{historyId} {
+      allow read, create, update: if isSignedIn();
+    }
+    match /processed_events/{eventId} {
+      allow read, write: if isSignedIn();
+    }
+    match /transaction_logs/{logId} {
+      allow read, write: if isSignedIn();
+    }
+  }
+}

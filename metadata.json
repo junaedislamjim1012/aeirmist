@@ -1,0 +1,12 @@
+{
+  "name": "Aeirmist",
+  "description": "A hyper-visual digital sanctuary for the next generation. Experience social media with main character energy through glassmorphic neon-futurism.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

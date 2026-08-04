@@ -1,0 +1,803 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Dancing+Script:wght@400..700&family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Bebas+Neue&family=Inter:wght@400;700;900&display=swap');
+/* Trigger rebuild */
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Orbitron", sans-serif;
+  
+  --color-aeirmist-cyan: #00f2ff;
+  --color-aeirmist-magenta: #ff00ea;
+  --color-aeirmist-lime: #bfff00;
+  --color-aeirmist-bg: #050505;
+  --color-aeirmist-accent: #1e1e1e;
+  --aeirmist-panel: rgba(255, 255, 255, 0.03);
+  --aeirmist-glow: transparent;
+
+  /* Legacy Aura theme tokens compatibility mappings */
+  --color-aura-cyan: var(--color-aeirmist-cyan);
+  --color-aura-magenta: var(--color-aeirmist-magenta);
+  --color-aura-lime: var(--color-aeirmist-lime);
+  --color-aura-bg: var(--color-aeirmist-bg);
+  --color-aura-accent: var(--color-aeirmist-accent);
+  --aura-panel: var(--aeirmist-panel);
+  --aura-glow: var(--aeirmist-glow);
+
+  --spacing-safe-top: env(safe-area-inset-top, 0px);
+  --spacing-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --spacing-safe-left: env(safe-area-inset-left, 0px);
+  --spacing-safe-right: env(safe-area-inset-right, 0px);
+
+  --font-size-fluid-3xs: clamp(0.55rem, 1.2vw, 0.65rem);
+  --font-size-fluid-2xs: clamp(0.65rem, 1.5vw, 0.75rem);
+  --font-size-fluid-xs: clamp(0.75rem, 2vw, 0.85rem);
+  --font-size-fluid-sm: clamp(0.85rem, 2.5vw, 0.95rem);
+  --font-size-fluid-base: clamp(0.95rem, 3vw, 1.05rem);
+  --font-size-fluid-lg: clamp(1.05rem, 3.5vw, 1.15rem);
+  --font-size-fluid-xl: clamp(1.2rem, 4.5vw, 1.4rem);
+  --font-size-fluid-2xl: clamp(1.5rem, 6vw, 1.8rem);
+  --font-size-fluid-3xl: clamp(2rem, 8vw, 2.5rem);
+  --font-size-fluid-4xl: clamp(2.5rem, 10vw, 4rem);
+
+  /* Layout Constants */
+  --sidebar-w: 260px;
+  --sidebar-w-collapsed: 72px;
+  --right-panel-w: 340px;
+  --max-content-w: 1800px;
+  --messenger-sidebar-w: 360px;
+
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 300ms;
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  html, body, #root {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-color: var(--color-aeirmist-bg);
+    display: flex;
+    flex-direction: column;
+    transition: background-color 0.8s ease-in-out, color 0.8s ease-in-out;
+  }
+
+  body {
+    @apply text-white font-sans antialiased selection:bg-aeirmist-cyan/30;
+    cursor: default;
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior-y: none;
+  }
+
+  /* Core smooth theme switching transitions */
+  body, .glass-panel, .glass-card, .glass-button, p, h1, h2, h3, h4, h5, h6, span, button, input, textarea, select, option, a {
+    transition: background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+                border-color 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+                color 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Prevent auto-zoom on iOS when tapping inputs */
+  @media (max-width: 640px) {
+    input:not([type="checkbox"]):not([type="radio"]), 
+    textarea, 
+    select {
+      font-size: 16px !important;
+    }
+  }
+
+  /* Mobile Touch Momentum Scrolling */
+  .overflow-y-auto, .overflow-x-auto, .overflow-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@layer components {
+  /* Fluid Content Container */
+  .fluid-container {
+    @apply w-full mx-auto max-w-[var(--max-content-w)];
+  }
+
+  .app-container {
+    @apply w-full h-full flex relative overflow-hidden bg-aeirmist-bg max-w-[2560px] mx-auto;
+  }
+
+  /* Main layout shell - fills viewport */
+  .layout-shell {
+    @apply w-full h-full flex relative overflow-hidden bg-aeirmist-bg max-w-[2560px] mx-auto;
+  }
+
+  .safe-top { padding-top: var(--spacing-safe-top); }
+  .safe-bottom { padding-bottom: var(--spacing-safe-bottom); }
+  .safe-mb-top { margin-top: var(--spacing-safe-top); }
+  .safe-mb-bottom { margin-bottom: var(--spacing-safe-bottom); }
+  .safe-pt { padding-top: var(--spacing-safe-top); }
+  .safe-pb { padding-bottom: var(--spacing-safe-bottom); }
+  
+  .mobile-touch-target {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+
+  /* Fluid Typography Utils */
+  .text-fluid-3xs { font-size: var(--font-size-fluid-3xs); }
+  .text-fluid-2xs { font-size: var(--font-size-fluid-2xs); }
+  .text-fluid-xs { font-size: var(--font-size-fluid-xs); }
+  .text-fluid-sm { font-size: var(--font-size-fluid-sm); }
+  .text-fluid-base { font-size: var(--font-size-fluid-base); }
+  .text-fluid-lg { font-size: var(--font-size-fluid-lg); }
+  .text-fluid-xl { font-size: var(--font-size-fluid-xl); }
+  .text-fluid-2xl { font-size: var(--font-size-fluid-2xl); }
+  .text-fluid-3xl { font-size: var(--font-size-fluid-3xl); }
+  .text-fluid-4xl { font-size: var(--font-size-fluid-4xl); }
+
+  /* ==========================================================================
+     Standardized Design System Utility Classes
+     ========================================================================== */
+
+  /* Standard Cards & Surfaces */
+  .ui-card {
+    @apply rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 bg-white/[0.02] border border-white/10 shadow-lg shadow-black/30 backdrop-blur-xl transition-all duration-300 hover:border-white/20;
+  }
+
+  .ui-card-compact {
+    @apply rounded-xl sm:rounded-2xl p-3 sm:p-4 bg-white/[0.02] border border-white/10 shadow-md backdrop-blur-md transition-all duration-300;
+  }
+
+  .ui-card-interactive {
+    @apply rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 bg-white/[0.02] border border-white/10 shadow-lg shadow-black/30 backdrop-blur-xl transition-all duration-300 hover:scale-[1.01] hover:border-aeirmist-cyan/30 hover:shadow-[0_8px_30px_rgba(0,242,255,0.15)] cursor-pointer;
+  }
+
+  /* Standard Buttons */
+  .ui-btn-sm {
+    @apply h-9 px-3.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 shrink-0 cursor-pointer;
+  }
+
+  .ui-btn-md {
+    @apply h-11 px-5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 flex items-center justify-center gap-2.5 shrink-0 cursor-pointer;
+  }
+
+  .ui-btn-lg {
+    @apply h-12 sm:h-14 px-6 rounded-2xl text-sm sm:text-base font-black uppercase tracking-widest transition-all duration-200 active:scale-95 flex items-center justify-center gap-3 shrink-0 cursor-pointer;
+  }
+
+  .ui-btn-primary {
+    @apply h-11 px-5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 flex items-center justify-center gap-2.5 shrink-0 cursor-pointer bg-aeirmist-cyan text-black hover:bg-white hover:shadow-[0_0_20px_rgba(0,242,255,0.4)];
+  }
+
+  .ui-btn-secondary {
+    @apply h-11 px-5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 flex items-center justify-center gap-2.5 shrink-0 cursor-pointer bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/20;
+  }
+
+  .ui-btn-ghost {
+    @apply h-11 px-5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 flex items-center justify-center gap-2.5 shrink-0 cursor-pointer bg-transparent text-white/70 hover:text-white hover:bg-white/5;
+  }
+
+  .ui-btn-danger {
+    @apply h-11 px-5 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-200 active:scale-95 flex items-center justify-center gap-2.5 shrink-0 cursor-pointer bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 hover:border-rose-500/40;
+  }
+
+  /* Standard Inputs */
+  .ui-input {
+    @apply h-11 sm:h-12 w-full px-4 rounded-xl sm:rounded-2xl bg-white/[0.03] border border-white/10 text-xs sm:text-sm text-white placeholder-white/30 outline-none transition-all duration-200 focus:border-aeirmist-cyan/50 focus:bg-white/[0.05] focus:ring-1 focus:ring-aeirmist-cyan/30;
+  }
+
+  .ui-input-sm {
+    @apply h-9 w-full px-3.5 rounded-xl bg-white/[0.03] border border-white/10 text-xs text-white placeholder-white/30 outline-none transition-all duration-200 focus:border-aeirmist-cyan/50 focus:bg-white/[0.05];
+  }
+
+  .ui-textarea {
+    @apply w-full p-4 rounded-xl sm:rounded-2xl bg-white/[0.03] border border-white/10 text-xs sm:text-sm text-white placeholder-white/30 outline-none transition-all duration-200 focus:border-aeirmist-cyan/50 focus:bg-white/[0.05] focus:ring-1 focus:ring-aeirmist-cyan/30 resize-none;
+  }
+
+  /* Standard Typography */
+  .ui-heading-1 {
+    @apply font-display font-black text-xl sm:text-2xl md:text-3xl text-white uppercase tracking-wider leading-tight;
+  }
+
+  .ui-heading-2 {
+    @apply font-bold text-base sm:text-lg md:text-xl text-white uppercase tracking-wide leading-snug;
+  }
+
+  .ui-heading-3 {
+    @apply font-bold text-sm sm:text-base text-white tracking-tight;
+  }
+
+  .ui-body-text {
+    @apply text-xs sm:text-sm text-white/80 leading-relaxed font-normal;
+  }
+
+  .ui-caption {
+    @apply text-[10px] sm:text-xs font-mono uppercase tracking-widest text-white/40;
+  }
+
+  /* Standard Modals */
+  .ui-modal-backdrop {
+    @apply fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto;
+  }
+
+  .ui-modal-container {
+    @apply max-w-xl sm:max-w-2xl w-full rounded-3xl bg-[#080a10] border border-white/10 p-5 sm:p-6 md:p-8 space-y-6 shadow-2xl overflow-hidden relative;
+  }
+
+  .ui-modal-header {
+    @apply flex items-center justify-between pb-4 border-b border-white/10;
+  }
+
+  .ui-modal-footer {
+    @apply pt-4 border-t border-white/10 flex items-center justify-end gap-3;
+  }
+
+  /* Standard Section & Layout Spacing */
+  .ui-section-spacing {
+    @apply space-y-6 sm:space-y-8;
+  }
+
+  .ui-stack-gap {
+    @apply space-y-4 sm:space-y-5;
+  }
+
+  .ui-grid-gap {
+    @apply gap-4 sm:gap-5 md:gap-6;
+  }
+
+  /* Standard Icons */
+  .ui-icon-xs { @apply w-3.5 h-3.5 shrink-0; }
+  .ui-icon-sm { @apply w-4 h-4 shrink-0; }
+  .ui-icon-md { @apply w-5 h-5 shrink-0; }
+  .ui-icon-lg { @apply w-6 h-6 shrink-0; }
+  .ui-icon-xl { @apply w-8 h-8 shrink-0; }
+
+  /* Standard Scroll Behavior */
+  .ui-scroll-view {
+    @apply overflow-y-auto scroll-smooth overscroll-contain;
+    -webkit-overflow-scrolling: touch;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .ui-scroll-view::-webkit-scrollbar {
+    display: none;
+  }
+
+  .glass-panel {
+    background-color: var(--aeirmist-panel);
+    @apply backdrop-blur-3xl border border-white/5 shadow-[0_32px_64px_-15px_rgba(0,0,0,0.6)];
+    transition: background-color 0.8s ease-in-out, border-color 0.8s ease-in-out;
+  }
+  
+  .glass-card {
+    @apply bg-white/[0.01] backdrop-blur-2xl border border-white/[0.04] rounded-3xl overflow-hidden transition-all duration-700 shadow-[0_20px_50px_rgba(0,0,0,0.4)];
+  }
+
+  .neon-border-cyan {
+    border-color: color-mix(in srgb, var(--color-aeirmist-cyan) 30%, transparent);
+    box-shadow: 0 0 20px var(--aeirmist-glow);
+  }
+
+  .glass-button {
+    @apply bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-full flex items-center justify-center transition-all duration-500 hover:bg-white/10 hover:border-white/20 hover:scale-110 active:scale-95;
+  }
+
+  .neon-glow-magenta {
+    box-shadow: 0 0 40px rgba(255, 0, 234, 0.15);
+  }
+
+  .neon-glow-cyan {
+    box-shadow: 0 0 40px rgba(0, 242, 255, 0.15);
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 150%; }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 1.8s ease-in-out infinite;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.5; filter: blur(8px); }
+    50% { opacity: 1; filter: blur(12px); }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .animate-spin-slow {
+    animation: spin-slow 12s linear infinite;
+  }
+
+  @keyframes scan-slow {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+
+  @keyframes scan-fast {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+
+  .animate-scan-slow {
+    animation: scan-slow 10s linear infinite;
+  }
+
+  .animate-scan-fast {
+    animation: scan-fast 6s linear infinite;
+  }
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-100%); }
+  }
+
+  .animate-marquee {
+    animation: marquee 10s linear infinite;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+    /* Hide scrollbar while keeping scroll functionality */
+  html, body, * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+    background: transparent;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Prevent horizontal scrollbar artifacts */
+  body {
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+  }
+
+  /* Ensure scroll containers still work */
+  .scroll-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scroll-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Universal scroll container utility */
+  .overflow-y-auto, .overflow-x-auto, .overflow-auto {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  .overflow-y-auto::-webkit-scrollbar, .overflow-x-auto::-webkit-scrollbar, .overflow-auto::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  /* Better momentum scrolling on mobile */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevent scroll bounce artifacts */
+  body {
+    overscroll-behavior-y: contain;
+  }
+
+
+/* Light Theme Overrides & Proxy Decoders */
+:root.light body,
+:root.light html,
+:root.light #root {
+  background-color: #f1f5f9 !important; /* Lighter background for the app shell */
+  color: #0f172a !important;
+}
+
+:root.light .app-container,
+:root.light .layout-shell,
+:root.light .fluid-container {
+  background-color: #f1f5f9 !important;
+}
+
+:root.light .glass-panel {
+  background-color: rgba(255, 255, 255, 0.72) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 32px 64px -15px rgba(15, 23, 42, 0.06) !important;
+}
+
+:root.light .glass-card {
+  background-color: rgba(255, 255, 255, 0.45) !important;
+  border-color: rgba(15, 23, 42, 0.06) !important;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.05) !important;
+}
+
+:root.light .glass-button {
+  background-color: rgba(15, 23, 42, 0.04) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  color: #0f172a !important;
+}
+:root.light .glass-button:hover {
+  background-color: rgba(15, 23, 42, 0.08) !important;
+  border-color: rgba(15, 23, 42, 0.15) !important;
+}
+
+/* Comprehensive Text Colors Mapping for Light Mode */
+:root.light .text-white, 
+:root.light .text-white\/100,
+:root.light .text-white\/95,
+:root.light .text-white\/90 {
+  color: rgba(15, 23, 42, 0.95) !important;
+}
+:root.light .text-white\/85,
+:root.light .text-white\/80 {
+  color: rgba(15, 23, 42, 0.82) !important;
+}
+:root.light .text-white\/75,
+:root.light .text-white\/70,
+:root.light .text-white\/60,
+:root.light .text-gray-400 {
+  color: rgba(15, 23, 42, 0.62) !important;
+}
+:root.light .text-white\/50,
+:root.light .text-white\/45,
+:root.light .text-white\/40,
+:root.light .text-slate-400 {
+  color: rgba(15, 23, 42, 0.45) !important;
+}
+:root.light .text-white\/30,
+:root.light .text-white\/25,
+:root.light .text-white\/20,
+:root.light .text-white\/10,
+:root.light .text-white\/5 {
+  color: rgba(15, 23, 42, 0.25) !important;
+}
+
+/* Comprehensive Borders Mapping for Light Mode */
+:root.light .border-white\/5,
+:root.light .border-white\/10,
+:root.light .border-white\/12,
+:root.light .border-white\/15,
+:root.light .border-white\/20,
+:root.light .border-white\/30,
+:root.light .border-white\/40,
+:root.light .border-white\/50,
+:root.light .border-neutral-950 {
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Comprehensive Backgrounds Mapping for Light Mode */
+:root.light .bg-aeirmist-bg,
+:root.light .bg-aeirmist-accent,
+:root.light .bg-aura-bg,
+:root.light .bg-aura-accent,
+:root.light .bg-zinc-950,
+:root.light .bg-zinc-900,
+:root.light .bg-zinc-800,
+:root.light .bg-slate-950,
+:root.light .bg-slate-900,
+:root.light .bg-neutral-950,
+:root.light .bg-neutral-900 {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+:root.light .bg-white\/5,
+:root.light .bg-white\/\[0\.02\],
+:root.light .bg-white\/\[0\.03\],
+:root.light .bg-white\/\[0\.05\],
+:root.light .bg-white\/\[0\.01\],
+:root.light .bg-white\/10,
+:root.light .bg-white\/15,
+:root.light .bg-white\/20,
+:root.light .bg-white\/30 {
+  background-color: rgba(15, 23, 42, 0.035) !important;
+}
+
+:root.light .bg-white\/\[0\.02\] {
+  background-color: rgba(15, 23, 42, 0.015) !important;
+}
+
+:root.light .bg-black\/20,
+:root.light .bg-black\/30,
+:root.light .bg-black\/40,
+:root.light .bg-black\/50,
+:root.light .bg-black\/60,
+:root.light .bg-black\/70,
+:root.light .bg-black\/80,
+:root.light .bg-black\/90,
+:root.light .bg-black\/95 {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  color: #0f172a !important;
+}
+
+/* Hardcoded Dark Hex Background Mappings to Light Mode */
+:root.light .bg-\[\#01050a\],
+:root.light .bg-\[\#0a0a0a\],
+:root.light .bg-\[\#09090c\],
+:root.light .bg-\[\#07070a\],
+:root.light .bg-\[\#02050a\],
+:root.light .bg-\[\#050a0f\],
+:root.light .bg-\[\#0b0e14\],
+:root.light .bg-\[\#060608\] {
+  background-color: #f8fafc !important; /* Elegant light slate */
+  color: #0f172a !important;
+}
+
+/* Semi-transparent Dark Hex Background Mappings to Light Mode */
+:root.light .bg-\[\#01050a\]\/95,
+:root.light .bg-\[\#01050a\]\/80,
+:root.light .bg-\[\#09090c\]\/98,
+:root.light .bg-\[\#09090c\]\/40,
+:root.light .bg-\[\#07070a\]\/90,
+:root.light .bg-\[\#0a0a0d\]\/80,
+:root.light .bg-\[\#0a0a0c\]\/98,
+:root.light .bg-\[\#0f0f13\]\/85,
+:root.light .bg-\[\#02050a\]\/80,
+:root.light .bg-\[\#060608\]\/90 {
+  background-color: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(24px) !important;
+}
+
+/* Scalable catch-all for any hardcoded dark hex background class by prefix */
+:root.light [class*="bg-[#0"],
+:root.light [class*="bg-[#1"],
+:root.light [class*="bg-[#2"],
+:root.light [class*="from-[#0"],
+:root.light [class*="from-[#1"],
+:root.light [class*="to-[#0"],
+:root.light [class*="to-[#1"] {
+  background-color: #f8fafc !important;
+  background-image: none !important; /* Kill dark gradients */
+  color: #0f172a !important;
+}
+
+/* Catch-all for dark background named colors if not caught above */
+:root.light [class*="bg-zinc-"],
+:root.light [class*="bg-slate-"],
+:root.light [class*="bg-neutral-"],
+:root.light [class*="bg-black"] {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* Navigation Specific Overrides */
+:root.light #aeirmist-desktop-sidebar,
+:root.light #aeirmist-sidebar-profile-card,
+:root.light .md\:hidden.fixed.bottom-3 {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  color: #0f172a !important;
+}
+
+:root.light #aeirmist-desktop-sidebar [class*="bg-[#"],
+:root.light #aeirmist-desktop-sidebar [class*="bg-white/"] {
+  background-color: rgba(15, 23, 42, 0.05) !important;
+}
+
+/* Hide dark background effects in Light Mode */
+:root.light [class*="mix-blend-"],
+:root.light .LiquidBackground,
+:root.light .NeuralGlow {
+  display: none !important;
+  mix-blend-mode: normal !important;
+}
+
+/* Explicitly target the divs that correspond to background effects if they lack classes */
+:root.light div.fixed.inset-0.pointer-events-none.z-0,
+:root.light div.fixed.inset-0.pointer-events-none.overflow-hidden.-z-10 {
+  display: none !important;
+}
+
+/* Global Text Visibility in Light Mode - High Contrast Catch-all */
+:root.light .text-white,
+:root.light [class*="text-white/"],
+:root.light [class*="text-white\/"],
+:root.light [class*="text-white/\["],
+:root.light [class*="text-[#fff"],
+:root.light [class*="text-[#ccebff]"],
+:root.light [class*="text-aeirmist-cyan"],
+:root.light [class*="text-aura-cyan"] { 
+  color: #0f172a !important; 
+}
+
+/* Metadata and Low-Opacity Labels */
+:root.light .text-white\/70,
+:root.light .text-white\/60,
+:root.light .text-white\/50 { 
+  color: #334155 !important; 
+}
+
+:root.light .text-white\/40,
+:root.light .text-white\/30,
+:root.light .text-white\/20,
+:root.light .text-white\/10,
+:root.light .text-slate-400,
+:root.light .text-zinc-500 {
+  color: #64748b !important;
+}
+
+/* Ensure AEIRMIST logo and text-display are sharp and dark in Light Mode */
+:root.light .font-display,
+:root.light .AeirmistLogo,
+:root.light [class*="AeirmistLogo"],
+:root.light h1, :root.light h2, :root.light h3, :root.light h4, :root.light h5, :root.light h6,
+:root.light .font-bold, :root.light .font-black {
+  color: #0f172a !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+/* Disable or neutralize holographic glows and blurs that cause blurring in light mode */
+:root.light [class*="drop-shadow-"],
+:root.light [class*="shadow-glow"],
+:root.light [class*="blur-"],
+:root.light .shadow-glow,
+:root.light .drop-shadow-glow {
+  filter: none !important;
+  text-shadow: none !important;
+}
+
+/* Fix for AEIRMIST Logo and hardcoded light-blue text */
+:root.light .text-\[\#ccebff\],
+:root.light [class*="text-[#ccebff]"] {
+  color: #0f172a !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+/* Layout safeguards for narrow mobile containers in Light Mode */
+:root.light .truncate {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  min-width: 0 !important;
+}
+
+/* Fix for the vertical text wrapping bug on narrow containers */
+:root.light p, :root.light span {
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+:root.light .min-w-0 {
+  min-width: 0 !important;
+}
+
+/* Specific fix for Cyan text in Light Mode */
+:root.light .text-aeirmist-cyan {
+  color: #007c8a !important;
+  text-shadow: none !important;
+}
+
+/* Catch-all for bracket-notation opacity background-white classes */
+:root.light [class*="bg-white/["] {
+  background-color: rgba(15, 23, 42, 0.035) !important;
+}
+
+/* Form Controls and Option Selectors in Light Mode */
+:root.light input,
+:root.light textarea,
+:root.light select {
+  background-color: rgba(15, 23, 42, 0.035) !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+:root.light input::placeholder,
+:root.light textarea::placeholder {
+  color: rgba(15, 23, 42, 0.42) !important;
+}
+
+:root.light option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* Scrollbar styles for Light Mode */
+:root.light ::-webkit-scrollbar-thumb {
+  background-color: rgba(15, 23, 42, 0.12) !important;
+}
+:root.light ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(15, 23, 42, 0.22) !important;
+}
+
+/* Global Light Mode High-Contrast Typography & Surface Overrides for Settings & App UI */
+:root.light .text-white\/10,
+:root.light .text-white\/20,
+:root.light .text-white\/25,
+:root.light .text-white\/30,
+:root.light .text-white\/35,
+:root.light .text-white\/40 {
+  color: #475569 !important; /* slate-600 */
+}
+
+:root.light .text-white\/50,
+:root.light .text-white\/55,
+:root.light .text-white\/60,
+:root.light .text-white\/65,
+:root.light .text-white\/70,
+:root.light .text-white\/75 {
+  color: #334155 !important; /* slate-700 */
+}
+
+:root.light .text-white\/80,
+:root.light .text-white\/85,
+:root.light .text-white\/90,
+:root.light .text-white\/95,
+:root.light .text-white {
+  color: #0f172a !important; /* slate-900 */
+}
+
+:root.light .placeholder\:text-white\/10::placeholder,
+:root.light .placeholder\:text-white\/20::placeholder,
+:root.light .placeholder\:text-white\/30::placeholder,
+:root.light .placeholder\:text-white\/40::placeholder,
+:root.light .placeholder\:text-white\/50::placeholder {
+  color: #64748b !important; /* slate-500 */
+}
+
+:root.light .border-white\/5,
+:root.light .border-white\/10 {
+  border-color: rgba(15, 23, 42, 0.15) !important;
+}
+
+:root.light .border-white\/20,
+:root.light .border-white\/30 {
+  border-color: rgba(15, 23, 42, 0.25) !important;
+}
+
+:root.light .bg-white\/5,
+:root.light .bg-white\/10,
+:root.light .bg-white\/\[0\.01\],
+:root.light .bg-white\/\[0\.02\],
+:root.light .bg-white\/\[0\.03\],
+:root.light .bg-white\/\[0\.04\],
+:root.light .bg-white\/\[0\.05\] {
+  background-color: rgba(15, 23, 42, 0.04) !important;
+}
+
+/* Custom Global Background Overrides */
+html.global-bg-active,
+html.global-bg-active body,
+html.global-bg-active #root,
+html.global-bg-active .app-container,
+html.global-bg-active .layout-shell {
+  background: transparent !important;
+  background-color: transparent !important;
+}
